@@ -1,10 +1,10 @@
 #include "LedControl.h"
 
-#define HE 6
-#define HE_VPP 12
-#define HE_GND 11
-#define output_every 200
-#define DOT_POS 2
+#define HALL_EFFECT_SENSOR 6
+#define HE_VPP 12 // hall effect sensor V+
+#define HE_GND 11 //hall effect sensor ground
+#define OUTPUT_EVERY 200 //output interval in milisecond
+#define DOT_POS 2 // position of fixed doc
 #define BUTTON_PIN 6
 #define MODE_CHANGE_DELAY 2000
 #define BRIGHTNESS_ADJ_WAIT 5000
@@ -13,13 +13,13 @@
 int low_cutoff = 527;
 int high_cutoff = 533;
 
-LedControl lc = LedControl(2, 3, 4, 1); // lc is our object
+LedControl lc = LedControl(2, 3, 4, 1);
 unsigned long startt = 0;
 unsigned long stopt = 0;
 void setup() {
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(HE_VPP, OUTPUT);
   pinMode(HE_GND, OUTPUT);
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
   digitalWrite(HE_VPP, HIGH);
   digitalWrite(HE_GND, LOW);
   lc.shutdown(0, false); // turn off power saving, enables display
@@ -37,8 +37,8 @@ void debugMode() {
   showi(1);
   delay(MODE_CHANGE_DELAY);
   while (1) {
-    showi(analogRead(HE));
-    delay(output_every);
+    showi(analogRead(HALL_EFFECT_SENSOR));
+    delay(OUTPUT_EVERY);
     if (digitalRead(BUTTON_PIN) == LOW) {
       brightnessAdj();
       break;
@@ -54,27 +54,28 @@ void brightnessAdj(){
     lc.setIntensity(0, bri);
     showd(bri);
     bri++;
-    delay(output_every);
+    delay(OUTPUT_EVERY);
     }
   }
-  
   }
 
 
 void loop() {
   //check low time() high low high time()
-  while(analogRead(HE) > low_cutoff){}
-  while(analogRead(HE) < high_cutoff){}
+  while(analogRead(HALL_EFFECT_SENSOR) > low_cutoff){}
+  while(analogRead(HALL_EFFECT_SENSOR) < high_cutoff){}
   startt = micros();
-  while(analogRead(HE) > low_cutoff){}
-  while(analogRead(HE) < high_cutoff){}
+  while(analogRead(HALL_EFFECT_SENSOR) > low_cutoff){}
+  while(analogRead(HALL_EFFECT_SENSOR) < high_cutoff){}
   stopt = micros();
   double x = (1 / ((stopt - startt) * 1E-6));
+  x = x * 32 E-4;
   showd(x);
-  delay(output_every);
+  delay(OUTPUT_EVERY);
 
 }
 
+/* display a double */
 void showd(double d) {
   int h = (int)d;
   int h1 = h / 10 % 10;
@@ -89,6 +90,7 @@ void showd(double d) {
   displayDg(4, t2);
   Serial.println(d);
 }
+/* display a integer*/
 void showi(int i) {
   int d1 = i / 1000 % 10;
   int d2 = i / 100 % 10;
@@ -104,7 +106,6 @@ void showi(int i) {
 
 }
 
-// modified to insert dot and ommit 0 as well
 void displayDg(int pos, int dg) {
   int dgSeq;
   switch (dg) {

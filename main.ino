@@ -4,18 +4,23 @@
 #define HE_VPP 12 // hall effect sensor V+
 #define HE_GND 11 //hall effect sensor ground
 #define OUTPUT_EVERY 200 //output interval in milisecond
-#define DOT_POS 2 // position of fixed doc
+#define DOT_POS 2 // position of fixed dot
 #define BUTTON_PIN 6
 #define MODE_CHANGE_DELAY 2000
 #define BRIGHTNESS_ADJ_WAIT 5000
+// wheel circumference in cm
+#define WHEEL_CIRCUMFERENCE 0.33 * 2 * 3.1415 * 1E-3
 
 
 int low_cutoff = 527;
 int high_cutoff = 533;
 
 LedControl lc = LedControl(2, 3, 4, 1);
+// start time
 unsigned long startt = 0;
+// stop time
 unsigned long stopt = 0;
+
 void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(HE_VPP, OUTPUT);
@@ -61,16 +66,16 @@ void brightnessAdj(){
 
 
 void loop() {
-  //check low time() high low high time()
+  //low-time-high-low-high-time
   while(analogRead(HALL_EFFECT_SENSOR) > low_cutoff){}
   while(analogRead(HALL_EFFECT_SENSOR) < high_cutoff){}
   startt = micros();
   while(analogRead(HALL_EFFECT_SENSOR) > low_cutoff){}
   while(analogRead(HALL_EFFECT_SENSOR) < high_cutoff){}
   stopt = micros();
-  double x = (1 / ((stopt - startt) * 1E-6));
-  x = x * 32 E-4;
-  showd(x);
+  // double freq = (1 / ((stopt - startt) * 1E-6));
+  double kmh = WHEEL_CIRCUMFERENCE / ((stopt - startt) / 3.6E-3);
+  showd(kmh);
   delay(OUTPUT_EVERY);
 
 }
